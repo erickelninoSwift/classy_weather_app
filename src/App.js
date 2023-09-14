@@ -7,6 +7,7 @@ class App extends React.Component {
       <>
         <div className="app">
           <h1>Classy Weather</h1>
+          <input type="text" placeholder="Search from Location.." />
         </div>
       </>
     );
