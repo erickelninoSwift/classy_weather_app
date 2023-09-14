@@ -1,47 +1,6 @@
 import "./App.css";
 import React from "react";
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = { location: "Madrid" };
-    this.handleLocationField = this.handleLocationField.bind(this);
-    this.fetchWeather = this.fetchWeather.bind(this);
-  }
-
-  handleLocationField(e) {
-    this.setState(() => {
-      return { location: e.target.value };
-    });
-  }
-
-  fetchWeather() {
-    console.log("Weather is ....");
-    console.log(this);
-  }
-  render() {
-    console.log(this.state.location);
-    return (
-      <>
-        <div className="app">
-          <h1>Classy Weather</h1>
-          <div>
-            <input
-              value={this.state.location}
-              type="text"
-              placeholder="Search from Location.."
-              onChange={this.handleLocationField}
-            />
-          </div>
-          <button onClick={this.fetchWeather}>Get Weather</button>
-        </div>
-      </>
-    );
-  }
-}
-export default App;
-
 function getWeatherIcon(wmoCode) {
   const icons = new Map([
     [[0], "☀️"],
@@ -74,28 +33,64 @@ function formatDay(dateStr) {
   }).format(new Date(dateStr));
 }
 
-async function getWeather(location) {
-  try {
-    // 1) Getting location (geocoding)
-    const geoRes = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${location}`
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { location: "Madrid" };
+    this.handleLocationField = this.handleLocationField.bind(this);
+    this.fetchWeather = this.fetchWeather.bind(this);
+  }
+
+  handleLocationField(e) {
+    this.setState(() => {
+      return { location: e.target.value };
+    });
+  }
+
+  async fetchWeather() {
+    try {
+      // 1) Getting location (geocoding)
+      const geoRes = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${this.state.location}`
+      );
+      const geoData = await geoRes.json();
+      console.log(geoData);
+
+      if (!geoData.results) throw new Error("Location not found");
+
+      const { latitude, longitude, timezone, name, country_code } =
+        geoData.results.at(0);
+      console.log(`${name} ${convertToFlag(country_code)}`);
+
+      // 2) Getting actual weather
+      const weatherRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&timezone=${timezone}&daily=weathercode,temperature_2m_max,temperature_2m_min`
+      );
+      const weatherData = await weatherRes.json();
+      console.log(weatherData.daily);
+    } catch (err) {
+      console.err(err);
+    }
+  }
+  render() {
+    console.log(this.state.location);
+    return (
+      <>
+        <div className="app">
+          <h1>Classy Weather</h1>
+          <div>
+            <input
+              value={this.state.location}
+              type="text"
+              placeholder="Search from Location.."
+              onChange={this.handleLocationField}
+            />
+          </div>
+          <button onClick={this.fetchWeather}>Get Weather</button>
+        </div>
+      </>
     );
-    const geoData = await geoRes.json();
-    console.log(geoData);
-
-    if (!geoData.results) throw new Error("Location not found");
-
-    const { latitude, longitude, timezone, name, country_code } =
-      geoData.results.at(0);
-    console.log(`${name} ${convertToFlag(country_code)}`);
-
-    // 2) Getting actual weather
-    const weatherRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&timezone=${timezone}&daily=weathercode,temperature_2m_max,temperature_2m_min`
-    );
-    const weatherData = await weatherRes.json();
-    console.log(weatherData.daily);
-  } catch (err) {
-    console.err(err);
   }
 }
+export default App;
