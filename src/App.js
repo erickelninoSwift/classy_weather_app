@@ -38,7 +38,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      location: "Madrid",
+      location: "",
       isLoading: false,
       displayLocation: "",
       weather: {},
@@ -79,7 +79,7 @@ class App extends React.Component {
       this.setState({ weather: weatherData.daily });
       this.setState({ isLoading: false });
     } catch (err) {
-      console.err(err);
+      console.err(err.message);
     }
   }
   render() {
@@ -128,11 +128,39 @@ class Weather extends React.Component {
       <div>
         <h2>Weather in {this.props.location}</h2>
         <ul className="weather">
-          {dates.map((currentData) => {
-            return <li key={currentData}>{currentData}</li>;
+          {dates.map((currentData, index) => {
+            return (
+              <Day
+                key={currentData}
+                date={currentData}
+                min={Math.floor(min[index])}
+                max={Math.ceil(max[index])}
+                code={codes[index]}
+                isToday={index === 0}
+              />
+            );
           })}
         </ul>
       </div>
+    );
+  }
+}
+
+class Day extends React.Component {
+  render() {
+    const { date, min, max, code, isToday } = this.props;
+    // console.log(date);
+    // console.log(code);
+    // console.log(min);
+    // console.log(max);
+    return (
+      <li className="day">
+        <span>{getWeatherIcon(code)}</span>
+        <p>{isToday ? "Today" : formatDay(date)}</p>
+        <p>
+          {min}&deg; - {max}&deg;
+        </p>
+      </li>
     );
   }
 }
