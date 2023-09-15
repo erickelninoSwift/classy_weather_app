@@ -38,7 +38,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      location: "pretoria",
+      location: "",
       isLoading: false,
       displayLocation: "",
       weather: {},
@@ -47,22 +47,14 @@ class App extends React.Component {
     this.fetchWeather = this.fetchWeather.bind(this);
   }
 
-  componentDidMount() {
-    this.fetchWeather();
-  }
-
-  componentDidUpdate(prevProps, prevState) {}
-
   handleLocationField(e) {
     this.setState(() => {
       return { location: e.target.value };
     });
-    this.fetchWeather();
   }
 
   async fetchWeather() {
     try {
-      if (this.state.location.length < 3) return;
       this.setState({ isLoading: true });
       // 1) Getting location (geocoding)
       const geoRes = await fetch(
@@ -95,11 +87,16 @@ class App extends React.Component {
       <>
         <div className="app">
           <h1>Classy Weather</h1>
-
-          <Input
-            location={this.state.location}
-            handleLocation={this.handleLocationField}
-          />
+          {!this.state.isLoading && (
+            <div>
+              <input
+                value={this.state.location}
+                type="text"
+                placeholder="Search from Location.."
+                onChange={this.handleLocationField}
+              />
+            </div>
+          )}
           <button onClick={this.fetchWeather}>Get Weather</button>
 
           {this.state.isLoading && <p className="loader">Loading ...</p>}
@@ -115,22 +112,6 @@ class App extends React.Component {
   }
 }
 export default App;
-
-class Input extends React.Component {
-  render() {
-    const { location, handleLocation } = this.props;
-    return (
-      <div>
-        <input
-          value={location}
-          type="text"
-          placeholder="Search from Location.."
-          onChange={handleLocation}
-        />
-      </div>
-    );
-  }
-}
 
 class Weather extends React.Component {
   render() {
